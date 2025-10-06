@@ -29,11 +29,11 @@ checksum = "784a4df722dc6267a04af36895398f59d21d07dce47232adf31ec0ff2fa45e67"
 [[package]]
 name = "hikami_core"
 version = "0.1.0"
-source = "git+https://github.com/Alignof/hikami?branch=fix%2Fremove_binary_info_from_hikami_core#bf034e297643c23d56efb485bcede4e0987475ac"
+source = "git+https://github.com/Alignof/hikami?branch=feature%2Fmilkv-megrez#5f641c6ef66d1dd862b665eb554e775d3c8742b2"
 dependencies = [
  "elf",
  "fdt",
- "raki",
+ "raki 1.3.2 (git+https://github.com/Alignof/raki?branch=feature%2FZbb)",
  "riscv",
  "rustsbi",
  "sbi-rt",
@@ -46,7 +46,7 @@ name = "hikami_zbs"
 version = "0.1.0"
 dependencies = [
  "hikami_core",
- "raki",
+ "raki 1.3.2 (git+https://github.com/Alignof/raki?branch=feature%2Fzbs)",
  "spin",
 ]
 
@@ -80,7 +80,12 @@ dependencies = [
 [[package]]
 name = "raki"
 version = "1.3.2"
-source = "git+https://github.com/Alignof/raki?branch=feature%2FZbb#a5a91b5b6d0c59fda232c6c3094e3d78a1155456"
+source = "git+https://github.com/Alignof/raki?branch=feature%2FZbb#fa5a0c4806154060c12a2a2af8883ab58d183636"
+
+[[package]]
+name = "raki"
+version = "1.3.2"
+source = "git+https://github.com/Alignof/raki?branch=feature%2Fzbs#20a08b081c3ac1f0bfc8e32d915c682ddce8e741"
 
 [[package]]
 name = "riscv"
