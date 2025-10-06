@@ -8,7 +8,7 @@ use hikami_core::HYPERVISOR_DATA;
 use hikami_core::emulate_extension::EmulateExtension;
 
 use core::cell::OnceCell;
-use raki::{Instruction, OpcodeKind, ZbsOpcode, ZicsrOpcode};
+use raki::{Instruction, OpcodeKind, ZbsOpcode};
 use spin::Mutex;
 
 /// Singleton for Zbs.
@@ -35,34 +35,62 @@ impl EmulateExtension for Zbs {
             .context;
 
         match inst.opc {
-            OpcodeKind::Zbs(ZbsOpcode::BCLRI) => todo!(),
-            OpcodeKind::Zbs(ZbsOpcode::BEXTI) => todo!(),
-            OpcodeKind::Zbs(ZbsOpcode::BINVI) => todo!(),
-            OpcodeKind::Zbs(ZbsOpcode::BSETI) => todo!(),
-            OpcodeKind::Zbs(ZbsOpcode::BCLR) => todo!(),
-            OpcodeKind::Zbs(ZbsOpcode::BEXT) => todo!(),
-            OpcodeKind::Zbs(ZbsOpcode::BINV) => todo!(),
-            OpcodeKind::Zbs(ZbsOpcode::BSET) => todo!(),
+            OpcodeKind::Zbs(ZbsOpcode::BCLRI) => {
+                let input = context.xreg(inst.rs1.unwrap()) as usize;
+                let shamt = inst.imm.unwrap();
+                let output = input & !(1 << shamt);
+                context.set_xreg(inst.rd.unwrap(), output as u64);
+            }
+            OpcodeKind::Zbs(ZbsOpcode::BEXTI) => {
+                let input = context.xreg(inst.rs1.unwrap()) as usize;
+                let shamt = inst.imm.unwrap();
+                let output = (input >> shamt) & 1;
+                context.set_xreg(inst.rd.unwrap(), output as u64);
+            }
+            OpcodeKind::Zbs(ZbsOpcode::BINVI) => {
+                let input = context.xreg(inst.rs1.unwrap()) as usize;
+                let shamt = inst.imm.unwrap();
+                let output = input ^ (1 << shamt);
+                context.set_xreg(inst.rd.unwrap(), output as u64);
+            }
+            OpcodeKind::Zbs(ZbsOpcode::BSETI) => {
+                let input = context.xreg(inst.rs1.unwrap()) as usize;
+                let shamt = inst.imm.unwrap();
+                let output = input | (1 << shamt);
+                context.set_xreg(inst.rd.unwrap(), output as u64);
+            }
+            OpcodeKind::Zbs(ZbsOpcode::BCLR) => {
+                let rs1 = context.xreg(inst.rs1.unwrap());
+                let rs2 = context.xreg(inst.rs2.unwrap());
+                context.set_xreg(inst.rd.unwrap(), rs1 & !(1 << rs2));
+            }
+            OpcodeKind::Zbs(ZbsOpcode::BEXT) => {
+                let rs1 = context.xreg(inst.rs1.unwrap());
+                let rs2 = context.xreg(inst.rs2.unwrap());
+                context.set_xreg(inst.rd.unwrap(), (rs1 >> rs2) & 1);
+            }
+            OpcodeKind::Zbs(ZbsOpcode::BINV) => {
+                let rs1 = context.xreg(inst.rs1.unwrap());
+                let rs2 = context.xreg(inst.rs2.unwrap());
+                context.set_xreg(inst.rd.unwrap(), rs1 ^ (1 << rs2));
+            }
+            OpcodeKind::Zbs(ZbsOpcode::BSET) => {
+                let rs1 = context.xreg(inst.rs1.unwrap());
+                let rs2 = context.xreg(inst.rs2.unwrap());
+                context.set_xreg(inst.rd.unwrap(), rs1 | (1 << rs2));
+            }
             _ => unreachable!(),
         }
     }
 
     /// Emulate Zicfiss CSRs access.
-    fn csr(&mut self, inst: &Instruction) {
-        let hypervisor_data = unsafe { HYPERVISOR_DATA.lock() };
-        let mut context = hypervisor_data.get().unwrap().guest().context;
-
-        let csr_num = inst.rs2.unwrap();
-        match csr_num {
-            unsupported_csr_num => {
-                unimplemented!("unsupported CSRs: {unsupported_csr_num:#x}")
-            }
-        }
+    fn csr(&mut self, _inst: &Instruction) {
+        unreachable!();
     }
 
     /// Emulate CSR field that already exists.
     fn csr_field(&mut self, _inst: &Instruction) {
-        todo!("Implementing Zbs CSR field emulation");
+        unreachable!();
     }
 
     /// Return whether given csr value is defined in the extension.
@@ -76,6 +104,6 @@ impl EmulateExtension for Zbs {
     ///
     /// This function returns `false` always because there is no CSR to emulate fields.
     fn is_csr_field_defined(&self, _: u16) -> bool {
-        todo!("Implementing Zbs CSR field definition");
+        false
     }
 }
