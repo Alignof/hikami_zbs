@@ -7,6 +7,7 @@
 use hikami_core::HYPERVISOR_DATA;
 use hikami_core::emulate_extension::EmulateExtension;
 
+use core::arch::asm;
 use core::cell::OnceCell;
 use raki::{Instruction, OpcodeKind, ZbsOpcode};
 use spin::Mutex;
@@ -28,6 +29,14 @@ impl EmulateExtension for Zbs {
     /// Emulate Zbs instruction.
     #[allow(clippy::cast_possible_truncation)]
     fn instruction(&mut self, inst: &Instruction) {
+        #[allow(named_asm_labels)]
+        unsafe {
+            asm!(
+                ".global __begin_zbs_instruction",
+                "__begin_zbs_instruction:",
+                options(nostack, preserves_flags, nomem)
+            );
+        }
         let mut context = unsafe { HYPERVISOR_DATA.lock() }
             .get()
             .unwrap()
@@ -75,11 +84,35 @@ impl EmulateExtension for Zbs {
                 context.set_xreg(inst.rd.unwrap(), rs1 ^ (1 << rs2));
             }
             OpcodeKind::Zbs(ZbsOpcode::BSET) => {
+                #[allow(named_asm_labels)]
+                unsafe {
+                    asm!(
+                        ".global __begin_bset",
+                        "__begin_bset:",
+                        options(nostack, preserves_flags, nomem)
+                    );
+                }
                 let rs1 = context.xreg(inst.rs1.unwrap());
                 let rs2 = context.xreg(inst.rs2.unwrap());
                 context.set_xreg(inst.rd.unwrap(), rs1 | (1 << rs2));
+                #[allow(named_asm_labels)]
+                unsafe {
+                    asm!(
+                        ".global __end_bset",
+                        "__end_bset:",
+                        options(nostack, preserves_flags, nomem)
+                    );
+                }
             }
             _ => unreachable!(),
+        }
+        #[allow(named_asm_labels)]
+        unsafe {
+            asm!(
+                ".global __end_zbs_instruction",
+                "__end_zbs_instruction:",
+                options(nostack, preserves_flags, nomem)
+            );
         }
     }
 
