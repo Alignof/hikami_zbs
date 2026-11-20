@@ -4,7 +4,7 @@
 // TODO: FIX AND REMOVE IT!!!
 #![allow(static_mut_refs)]
 
-use hikami_core::HYPERVISOR_DATA;
+use hikami_core::HYPERVISOR;
 use hikami_core::emulate_extension::EmulateExtension;
 
 use core::arch::asm;
@@ -37,11 +37,7 @@ impl EmulateExtension for Zbs {
                 options(nostack, preserves_flags, nomem)
             );
         }
-        let mut context = unsafe { HYPERVISOR_DATA.lock() }
-            .get()
-            .unwrap()
-            .guest()
-            .context;
+        let mut context = HYPERVISOR.lock().get().unwrap().guest().context;
 
         match inst.opc {
             OpcodeKind::Zbs(ZbsOpcode::BCLRI) => {
